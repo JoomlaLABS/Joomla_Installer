@@ -39,6 +39,26 @@ function print_result() {
   printf '\e[0m\n'
   printf '\n'
 }
+function get_last_package_url() {
+  local JOOMLA_SERVER=$1
+  php_code="\$context  = stream_context_create(array('http' => array('header' => 'Accept: application/xml')));
+  \$url = '${JOOMLA_SERVER}'; // Retrieve the Joomla! update servers
+  \$xml = file_get_contents(\$url, false, \$context);
+  \$xml = simplexml_load_string(\$xml);
+  \$max_version = \"0.0.0\";
+  \$downloadurl;
+  foreach(\$xml->update as \$update) {
+    if(version_compare(\$update->version, \$max_version, '>')) { //Search the latest release on the update server
+      \$max_version = \$update->version;
+      \$downloadurl = \$update->downloads->downloadurl;
+    }
+  }
+  echo \$downloadurl;"
+  downloadurl=$(/usr/local/bin/php -r "${php_code}")
+  echo "$downloadurl"
+}
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 # Variables
 INSTALL_PATH="/home/joomlasviluppo/public_html"
@@ -46,7 +66,7 @@ DIR_TO_KEEP=(".well-known" "cgi-bin" ".not_remove_dir" "not_remove_dir")
 FILE_TO_KEEP=("joomla_installer.sh" ".not_remove_file" "not_remove_file")
 TABLE_TO_KEEP=("do_not_remove1" "do_not_remove2")
 
-# Joomla Update Server
+# Joomla Update Server:
 # stable        => https://update.joomla.org/core/sts/extension_sts.xml
 # test          => https://update.joomla.org/core/test/extension_test.xml
 # nightly-major => https://update.joomla.org/core/nightlies/next_major_extension.xml
@@ -91,21 +111,7 @@ print_result " [OK] Removed all directories and files." "succes"
 
 # Retrieve the package url of the latest joomla version
 print_title "Retrieve latest Joomla version"
-php_code="\$context  = stream_context_create(array('http' => array('header' => 'Accept: application/xml')));
-\$url = '${JOOMLA_SERVER}'; // Retrieve the Joomla! Core update servers
-\$xml = file_get_contents(\$url, false, \$context);
-\$xml = simplexml_load_string(\$xml);
-\$max_version = \"0.0.0\";
-\$downloadurl;
-foreach(\$xml->update as \$update) {
-  if(version_compare(\$update->version, \$max_version, '>')) { //Search the latest release on the update server
-    \$max_version = \$update->version;
-    \$downloadurl = \$update->downloads->downloadurl;
-  }
-}
-\$downloadurl = str_replace('Update_Package.zip', 'Full_Package.zip', \$downloadurl); // Transform the url of the update packages into the url of the installation package
-echo \$downloadurl;"
-downloadurl=$(/usr/local/bin/php -r "${php_code}")
+downloadurl=$(get_last_package_url ${JOOMLA_SERVER} | sed 's/Update_Package.zip/Full_Package.zip/g')
 filename=$(basename $downloadurl)
 echo "Download URL: $downloadurl"
 print_result " [OK] Latest version is $filename." "succes"
@@ -175,11 +181,16 @@ print_result " [OK] Dropped all tables from $DB_NAME." "succes"
 # https://docs.joomla.org/J4.x:CLI_Update
 # https://magazine.joomla.org/all-issues/june-2022/joomla-4-a-powerful-cli-application
 
-# Install extensions
+# Install Patch Tester Component
+ext_pkg="$(get_last_package_url https://raw.githubusercontent.com/joomla-extensions/patchtester/master/manifest.xml)"
 /usr/local/bin/php $INSTALL_PATH/cli/joomla.php extension:install \
-  --url="https://github.com/joomla-extensions/patchtester/releases/download/4.2.1/com_patchtester_4.2.1.zip"
+  --url="$ext_pkg"
+
+# Install Joomla! - Italian
+lang_pkg="$(get_last_package_url https://update.joomla.org/language/details4/it-IT_details.xml)"
 /usr/local/bin/php $INSTALL_PATH/cli/joomla.php extension:install \
-  --url="https://downloads.joomla.org/it/language-packs/translations-joomla4/downloads/joomla4-italian/4-3-0-1/it-it_joomla_lang_full_4-3-0v1-zip"
+  --url="$lang_pkg"
+
 # Add users
 /usr/local/bin/php $INSTALL_PATH/cli/joomla.php user:add \
   --username="test" \
