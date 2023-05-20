@@ -200,3 +200,18 @@ lang_pkg="$(get_last_package_url https://update.joomla.org/language/details4/it-
   --usergroup="Administrator" # usergroup (separate multiple groups with comma ",")
 # Displays the current value of a configuration option
 #php cli/joomla.php config:get
+
+
+# Change the Default language to italian
+print_title "Change Default language"
+TABLE="${DB_PREFIX}extensions"
+php_code="\$dbconn;
+if('$DB_TYPE' == 'mysqli') {
+  \$dbconn = new mysqli('$DB_HOST', '$DB_USER', '$DB_PASS', '$DB_NAME');
+} else if('$DB_TYPE' == 'mysql' || '$DB_TYPE' == 'pgsql') {
+  \$dbconn = new PDO('$DB_TYPE:host=$DB_HOST;dbname=$DB_NAME', '$DB_USER', '$DB_PASS');
+}
+\$dbconn->query('UPDATE $TABLE SET params = \'{\"administrator\":\"it-IT\",\"site\":\"it-IT\"}\' WHERE name = \'com_languages\'');
+\$dbconn->close();"
+/usr/local/bin/php -r "${php_code}"
+print_result " [OK] Default language changed" "succes"
