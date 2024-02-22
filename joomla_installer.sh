@@ -1,5 +1,66 @@
 #!/bin/bash
 
+# Function to display correct usage of the script
+show_usage() {
+    echo "Usage: $0 [-u <URL_ZIP>|-url <URL_ZIP>] [-s <URL_XML>|-server <URL_XML>] [-l <LANGUAGE>|-language <LANGUAGE>] [--patchtester]"
+    echo "  -u, -url <URL_ZIP>:       Specify the direct URL of the Joomla! ZIP package to download."
+    echo "                              e.g. https://github.com/joomla/joomla-cms/releases/download/5.1.0-alpha4/Joomla_5.1.0-alpha4-Alpha-Full_Package.zip"
+    echo "                              e.g. https://developer.joomla.org/nightlies/Joomla_5.1.0-beta1-dev-Development-Full_Package.zip"
+    echo "  -s, -server <URL_XML>:    Specify the URL of the XML Server from which to extract the download package."
+    echo "                              e.g. https://update.joomla.org/core/sts/extension_sts.xml"
+    echo "                              e.g. https://update.joomla.org/core/j4/default.xml"
+    echo "                              e.g. https://update.joomla.org/core/j5/default.xml"
+    echo "                              e.g. https://update.joomla.org/core/test/extension_test.xml"
+    echo "                              e.g. https://update.joomla.org/core/nightlies/next_major_extension.xml"
+    echo "                              e.g. https://update.joomla.org/core/nightlies/next_minor_extension.xml"
+    echo "                              e.g. https://update.joomla.org/core/nightlies/next_patch_extension.xml"
+    echo "  -l, -language <LANGUAGE>: Specify the language for Joomla! installation."
+    echo "                              e.g. it-IT"
+    echo "  --patchtester:            Install Joomla! Patch Tester extension."
+    exit 1
+}
+
+# Initializing variables
+download_url=""
+update_server_url=""
+install_patchtester=false # Flag to indicate whether to install Patch Tester extension
+
+# Checking the arguments passed to the script
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -u | -url)
+            download_url="$2"
+            shift 2
+            ;;
+        -s | -server)
+            update_server_url="$2"
+            shift 2
+            ;;
+        -l | -language)
+            language="$2"
+            shift 2
+            ;;
+        --patchtester)
+            install_patchtester=true
+            shift
+            ;;
+        *)
+            show_usage
+            ;;
+    esac
+done
+
+# Checking whether one and only one of the two parameters is specified
+if [[ -z $download_url && -z $update_server_url ]]; then
+    echo "Error: Please specify one of the two parameters."
+    show_usage
+elif [[ ! -z $download_url && ! -z $update_server_url ]]; then
+    echo "Error: Please specify only one of the two parameters."
+    show_usage
+fi
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
 # Helper Functions
 function get_random_prefix() { # The table prefix must start with a letter, optionally be followed by alphanumeric characters and by an underscore
   local length=$1
@@ -58,35 +119,9 @@ function get_last_package_url() {
   echo "$downloadurl"
 }
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-# Variables
-INSTALL_PATH="/home/joomlasviluppo/public_html"
-DIR_TO_KEEP=(".well-known" "cgi-bin" ".not_remove_dir" "not_remove_dir")
-FILE_TO_KEEP=("joomla_installer.sh" ".not_remove_file" "not_remove_file")
-TABLE_TO_KEEP=("do_not_remove1" "do_not_remove2")
-
-# Joomla Update Server:
-# stable        => https://update.joomla.org/core/sts/extension_sts.xml
-# test          => https://update.joomla.org/core/test/extension_test.xml
-# nightly-major => https://update.joomla.org/core/nightlies/next_major_extension.xml
-# nightly-minor => https://update.joomla.org/core/nightlies/next_minor_extension.xml
-# nightly-patch => https://update.joomla.org/core/nightlies/next_patch_extension.xml
-JOOMLA_SERVER="https://update.joomla.org/core/nightlies/next_minor_extension.xml"
-
-SITE_NAME="Joomla! Demo" # The name of your Joomla site
-ADMIN_USER="Joomla Demo" # The real name of your Super User
-ADMIN_USERNAME="Superuser" # The username for your Super User account
-ADMIN_PASSWORD="**********" # The password for your Super User account
-ADMIN_EMAIL="demo@joomla.org" # The email address of the website Super User
-
-DB_TYPE="mysqli" # Database type. Supported: mysql (=MySQL (PDO)), mysqli (=MySQLi), pgsql (=PostgreSQL (PDO))
-DB_HOST="localhost" # Database host
-DB_USER="demo_joomla" # Database username
-DB_PASS="**********" # Database password
-DB_NAME="demo_joomla_db" # Database name
-DB_PREFIX="$(get_random_prefix 5)" # Prefix for the database tables
-DB_ENCRYPTION=0 # Encryption for the database connection. Values: 0=None, 1=One way, 2=Two way
+# Load configuration parameters from config.sh file
+source jconfig.sh
+DB_PREFIX="$(get_random_prefix 5)" # Prefix for the database tables [default: "gtlzk_"]
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -109,12 +144,22 @@ done
 print_result " [OK] Removed all directories and files." "succes"
 
 
-# Retrieve the package url of the latest joomla version
-print_title "Retrieve latest Joomla version"
-downloadurl=$(get_last_package_url ${JOOMLA_SERVER} | sed 's/Update_Package.zip/Full_Package.zip/g')
+
+# Retrieve the Joomla package from url or update server
+print_title "Retrieve Joomla package"
+# If direct download URL is specified
+if [[ ! -z $download_url ]]; then
+    echo "Downloading from direct URL: $download_url"
+    downloadurl=$download_url
+fi
+# If XML URL from update server is specified
+if [[ ! -z $update_server_url ]]; then
+    echo "Extracting download URL from XML: $update_server_url"
+    downloadurl=$(get_last_package_url ${update_server_url} | sed 's/Update_Package.zip/Full_Package.zip/g')
+fi
 filename=$(basename $downloadurl)
-echo "Download URL: $downloadurl"
-print_result " [OK] Latest version is $filename." "succes"
+print_result " [OK] Joomla version $filename." "succes"
+
 
 
 # Download the Full_Package zip file
@@ -123,11 +168,13 @@ wget $downloadurl -O $INSTALL_PATH/$filename
 print_result " [OK] $filename downloaded." "succes"
 
 
+
 # Unzip the Full_Package zip file
 print_title "Unzip the Full_Package zip file"
 unzip -q -o $INSTALL_PATH/$filename -d $INSTALL_PATH 
 rm $INSTALL_PATH/$filename
 print_result " [OK] $filename unzipped." "succes"
+
 
 
 # Empty the DB from all the tables present
@@ -159,6 +206,7 @@ echo "Tables to keep: ${TABLE_TO_KEEP[*]}"
 print_result " [OK] Dropped all tables from $DB_NAME." "succes"
 
 
+
 # Install Joomla from the CLI
 # https://docs.joomla.org/J4.x:Joomla_CLI_Installation
 # https://github.com/joomla/joomla-cms/pull/38325
@@ -174,44 +222,45 @@ print_result " [OK] Dropped all tables from $DB_NAME." "succes"
   --db-pass="$DB_PASS" \
   --db-name="$DB_NAME" \
   --db-prefix="$DB_PREFIX" \
-  --db-encryption=$DB_ENCRYPTION
+  --db-encryption=$DB_ENCRYPTION \
+  --public-folder=$PUBLIC_FOLDER
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 # Post installation steps
 # https://docs.joomla.org/J4.x:CLI_Update
 # https://magazine.joomla.org/all-issues/june-2022/joomla-4-a-powerful-cli-application
 
-# Install Patch Tester Component
-ext_pkg="$(get_last_package_url https://raw.githubusercontent.com/joomla-extensions/patchtester/master/manifest.xml)"
-/usr/local/bin/php $INSTALL_PATH/cli/joomla.php extension:install \
-  --url="$ext_pkg"
+# Install Joomla language
+if [[ "$language" ]]; then
+    #echo "Installing ${language} Joomla language"
+    lang_pkg="$(get_last_package_url https://update.joomla.org/language/details5/${language}_details.xml)" # TODO: details4 or details5 switch
+    /usr/local/bin/php $INSTALL_PATH/cli/joomla.php extension:install \
+      --url="$lang_pkg"
+    # Change the Default language
+    print_title "Change Default language"
+    TABLE="${DB_PREFIX}extensions"
+    php_code="\$dbconn;
+    if('$DB_TYPE' == 'mysqli') {
+      \$dbconn = new mysqli('$DB_HOST', '$DB_USER', '$DB_PASS', '$DB_NAME');
+    } else if('$DB_TYPE' == 'mysql' || '$DB_TYPE' == 'pgsql') {
+      \$dbconn = new PDO('$DB_TYPE:host=$DB_HOST;dbname=$DB_NAME', '$DB_USER', '$DB_PASS');
+    }
+    \$dbconn->query('UPDATE $TABLE SET params = \'{\"administrator\":\"${language}\",\"site\":\"${language}\"}\' WHERE name = \'com_languages\'');
+    \$dbconn->close();"
+    /usr/local/bin/php -r "${php_code}"
+    print_result " [OK] Default language changed" "succes"
+fi
 
-# Install Joomla! - Italian
-lang_pkg="$(get_last_package_url https://update.joomla.org/language/details4/it-IT_details.xml)"
-/usr/local/bin/php $INSTALL_PATH/cli/joomla.php extension:install \
-  --url="$lang_pkg"
-
-# Add users
-/usr/local/bin/php $INSTALL_PATH/cli/joomla.php user:add \
-  --username="test" \
-  --name="User Test" \
-  --password="test123" \
-  --email="test@test.com" \
-  --usergroup="Administrator" # usergroup (separate multiple groups with comma ",")
-# Displays the current value of a configuration option
-#php cli/joomla.php config:get
 
 
-# Change the Default language to italian
-print_title "Change Default language"
-TABLE="${DB_PREFIX}extensions"
-php_code="\$dbconn;
-if('$DB_TYPE' == 'mysqli') {
-  \$dbconn = new mysqli('$DB_HOST', '$DB_USER', '$DB_PASS', '$DB_NAME');
-} else if('$DB_TYPE' == 'mysql' || '$DB_TYPE' == 'pgsql') {
-  \$dbconn = new PDO('$DB_TYPE:host=$DB_HOST;dbname=$DB_NAME', '$DB_USER', '$DB_PASS');
-}
-\$dbconn->query('UPDATE $TABLE SET params = \'{\"administrator\":\"it-IT\",\"site\":\"it-IT\"}\' WHERE name = \'com_languages\'');
-\$dbconn->close();"
-/usr/local/bin/php -r "${php_code}"
-print_result " [OK] Default language changed" "succes"
+# Install Joomla! Patch Tester extension if '-patchtester' flag is present
+if [[ "$install_patchtester" == true ]]; then
+    #echo "Install Joomla! Patch Tester"
+    ext_pkg="$(get_last_package_url https://raw.githubusercontent.com/joomla-extensions/patchtester/master/manifest.xml)"
+    /usr/local/bin/php $INSTALL_PATH/cli/joomla.php extension:install \
+      --url="$ext_pkg"
+fi
+
+
+exit 0
