@@ -39,3 +39,6 @@ E.g.
 
 ### TO DO
 * Post installation steps: Add users
+
+### Demo
+https://github.com/JoomlaLABS/Joomla_Installer/assets/906604/0343d9b6-c12b-49dd-986f-fb0446a63611
