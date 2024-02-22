@@ -29,9 +29,13 @@ bash script to automatically install Joomla!
 
 E.g.
 
-`./joomla_installer.sh -url "https://github.com/joomla/joomla-cms/releases/download/5.1.0-alpha4/Joomla_5.1.0-alpha4-Alpha-Full_Package.zip" -language "it-IT" --patchtester`
+```Shell
+./joomla_installer.sh -url "https://github.com/joomla/joomla-cms/releases/download/5.1.0-alpha4/Joomla_5.1.0-alpha4-Alpha-Full_Package.zip" -language "it-IT" --patchtester
+```
 
-`./joomla_installer.sh -server "https://update.joomla.org/core/j5/default.xml" -language "it-IT" --patchtester`
+```Shell
+./joomla_installer.sh -server "https://update.joomla.org/core/j5/default.xml" -language "it-IT" --patchtester
+```
 
 ### TO DO
 * Post installation steps: Add users
