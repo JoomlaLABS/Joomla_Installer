@@ -1,7 +1,14 @@
 # Joomla_Installer
 bash script to automatically install Joomla!
 
-Usage:
+### Configuration & Installation
+1. Popolate `jconfig.sh`
+2. Upload  `joomla_installer.sh` and  `jconfig.sh`
+3. Set permission:
+   * `joomla_installer.sh` to `755`
+   * `jconfig.sh` to `644`
+
+### Usage
 ```
 ./joomla_installer.sh [-u <URL_ZIP>|-url <URL_ZIP>] [-s <URL_XML>|-server <URL_XML>] [-l <LANGUAGE>|-language <LANGUAGE>] [--patchtester]
   -u, -url <URL_ZIP>:       Specify the direct URL of the Joomla! ZIP package to download.
@@ -25,3 +32,6 @@ E.g.
 `./joomla_installer.sh -url "https://github.com/joomla/joomla-cms/releases/download/5.1.0-alpha4/Joomla_5.1.0-alpha4-Alpha-Full_Package.zip" -language "it-IT" --patchtester`
 
 `./joomla_installer.sh -server "https://update.joomla.org/core/j5/default.xml" -language "it-IT" --patchtester`
+
+### TO DO
+* Post installation steps: Add users
