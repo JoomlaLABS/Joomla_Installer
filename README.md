@@ -4,6 +4,7 @@ Bash script to automatically install Joomla! with advanced features for version 
 ## Features
 - ✅ Automatic Joomla! installation from direct URL or update server
 - ✅ Auto-detection of Joomla version (4.x, 5.x, 6.x)
+- ✅ **Support for Joomla 6.x JSON/TUF update servers** with channel and stability filtering
 - ✅ Automatic language pack installation with version compatibility
 - ✅ Joomla! Patch Tester extension with automatic compatibility check
 - ✅ Automatic creation of additional users with custom usergroups
@@ -49,7 +50,7 @@ Bash script to automatically install Joomla! with advanced features for version 
 
 ### Basic Syntax
 ```bash
-./joomla_installer.sh [-u <URL_ZIP>|-url <URL_ZIP>] [-s <URL_XML>|-server <URL_XML>] [-l <LANGUAGE>|-language <LANGUAGE>] [--patchtester]
+./joomla_installer.sh [-u <URL_ZIP>|-url <URL_ZIP>] [-s <URL_XML|URL_JSON>|-server <URL_XML|URL_JSON>] [-c <CHANNEL>|-channel <CHANNEL>] [-t <STABILITY>|-stability <STABILITY>] [-l <LANGUAGE>|-language <LANGUAGE>] [--patchtester]
 ```
 
 ### Parameters
@@ -57,14 +58,28 @@ Bash script to automatically install Joomla! with advanced features for version 
   - Example: `https://github.com/joomla/joomla-cms/releases/download/5.1.0-alpha4/Joomla_5.1.0-alpha4-Alpha-Full_Package.zip`
   - Example: `https://developer.joomla.org/nightlies/Joomla_5.1.0-beta1-dev-Development-Full_Package.zip`
 
-- **`-s, -server <URL_XML>`**: URL of the XML update server (auto-selects latest version)
-  - Example: `https://update.joomla.org/core/j4/default.xml` (Joomla 4.x stable)
-  - Example: `https://update.joomla.org/core/j5/default.xml` (Joomla 5.x stable)
-  - Example: `https://update.joomla.org/core/sts/extension_sts.xml` (Short Term Support)
-  - Example: `https://update.joomla.org/core/test/extension_test.xml` (Testing)
-  - Example: `https://update.joomla.org/core/nightlies/next_major_extension.xml` (Nightly builds)
-  - Example: `https://update.joomla.org/core/nightlies/next_minor_extension.xml`
-  - Example: `https://update.joomla.org/core/nightlies/next_patch_extension.xml`
+- **`-s, -server <URL_XML|URL_JSON>`**: URL of the update server (XML for Joomla 4.x/5.x, JSON for 6.x+)
+  - **XML servers** (Joomla 4.x/5.x):
+    - Example: `https://update.joomla.org/core/j4/default.xml` (Joomla 4.x stable)
+    - Example: `https://update.joomla.org/core/j5/default.xml` (Joomla 5.x stable)
+    - Example: `https://update.joomla.org/core/sts/extension_sts.xml` (Short Term Support)
+    - Example: `https://update.joomla.org/core/test/extension_test.xml` (Testing)
+    - Example: `https://update.joomla.org/core/nightlies/next_major_extension.xml` (Nightly builds)
+    - Example: `https://update.joomla.org/core/nightlies/next_minor_extension.xml`
+    - Example: `https://update.joomla.org/core/nightlies/next_patch_extension.xml`
+  - **JSON servers** (Joomla 6.x+ with TUF format):
+    - Example: `https://update.joomla.org/cms/targets.json` (Unified update server)
+
+- **`-c, -channel <CHANNEL>`**: Channel filter (only for JSON servers)
+  - Example: `5.x` (Joomla 5 series)
+  - Example: `6.x` (Joomla 6 series)
+  - **Note**: Ignored for XML servers
+
+- **`-t, -stability <STABILITY>`**: Stability filter (only for JSON servers)
+  - Example: `stable` (Stable releases)
+  - Example: `rc` (Release Candidates)
+  - Example: `alpha` (Alpha releases)
+  - **Note**: Ignored for XML servers
 
 - **`-l, -language <LANGUAGE>`**: Language code for installation (format: `xx-XX`)
   - Example: `it-IT` (Italian)
@@ -93,6 +108,21 @@ Bash script to automatically install Joomla! with advanced features for version 
 ./joomla_installer.sh -server "https://update.joomla.org/core/j4/default.xml" --patchtester
 ```
 
+#### Install latest Joomla 6.x stable from JSON server
+```bash
+./joomla_installer.sh -server "https://update.joomla.org/cms/targets.json" -channel "6.x" -stability "stable"
+```
+
+#### Install Joomla 6.x alpha (latest development version)
+```bash
+./joomla_installer.sh -server "https://update.joomla.org/cms/targets.json" -channel "6.x" -stability "alpha"
+```
+
+#### Install latest Joomla from JSON server (any channel, any stability)
+```bash
+./joomla_installer.sh -server "https://update.joomla.org/cms/targets.json"
+```
+
 #### Install latest nightly build (English only)
 ```bash
 ./joomla_installer.sh -server "https://update.joomla.org/core/nightlies/next_major_extension.xml"
@@ -110,6 +140,26 @@ Bash script to automatically install Joomla! with advanced features for version 
 7. **Patch Tester** (optional): Installs compatible Patch Tester extension
 8. **Additional Users** (optional): Creates configured users with custom usergroups
 9. **Final Report**: Shows success or warnings summary
+
+### Update Server Detection
+The script automatically detects the update server type and uses the appropriate parser:
+
+**XML Servers (Joomla 4.x/5.x)**:
+- Traditional XML manifest format
+- Selects the latest available version
+- Channel and stability parameters are ignored (not applicable)
+
+**JSON/TUF Servers (Joomla 6.x+)**:
+- Modern JSON format with TUF (The Update Framework) security
+- Supports filtering by:
+  - **Channel**: `5.x`, `6.x`, etc.
+  - **Stability**: `stable`, `rc`, `alpha`
+- Tests multiple URL patterns for package availability:
+  1. Direct Full_Package URL
+  2. update.joomla.org format conversion
+  3. GitHub releases pattern
+  4. Alternative dash format
+- Intelligent sorting: channel → stability → version
 
 ### Version Detection
 - Extracts version from filename (e.g., `Joomla_4.4.14-Stable` → `4.4.14`)
@@ -232,6 +282,12 @@ which php
 ln -s /path/to/php /usr/local/bin/php
 ```
 
+### JSON server returns no packages
+- Verify channel format (e.g., `5.x`, `6.x`)
+- Check stability value (`stable`, `rc`, `alpha`)
+- Try without filters to see all available packages
+- Ensure internet connection can reach `update.joomla.org`
+
 ### Language installation fails
 - Verify language code format (`xx-XX`)
 - Check internet connection
@@ -257,6 +313,21 @@ Configure in `jconfig.sh`:
 - **`FILE_TO_KEEP`**: Files to preserve (e.g., `.htaccess` for rewrite rules)
 - **`TABLE_TO_KEEP`**: Database tables to preserve (e.g., backup tables)
 
+### Automatic Server Type Detection
+The script automatically detects whether the update server is XML or JSON based on the URL extension:
+- `.xml` → Uses XML parser for Joomla 4.x/5.x
+- `.json` → Uses JSON/TUF parser for Joomla 6.x+
+- No manual configuration required
+
+### Multi-Pattern URL Testing (JSON only)
+For JSON servers, the script tests multiple URL patterns to find working download links:
+1. **Full_Package variant**: Converts `Update_Package.zip` to `Full_Package.zip`
+2. **update.joomla.org format**: Extracts version from downloads.joomla.org URLs
+3. **GitHub releases**: Converts GitHub Update packages to Full packages
+4. **Alternative formats**: Tests dash-separated version formats
+
+This ensures maximum compatibility even when URLs change or redirect.
+
 ### Random Table Prefix
 Each installation generates a random 5-character prefix starting with a letter (e.g., `a3x9z_`) for enhanced security.
 
@@ -271,6 +342,29 @@ Automatically creates users after installation with:
 ### Exit Codes
 - `0`: Success
 - `1`: Error (with detailed message)
+
+### Final Result Display
+The installation result shows the actual Joomla package name (e.g., "Joomla_5.4.1-Stable" or "Joomla_6.0.0-alpha1") instead of generic "Joomla", providing clear confirmation of which version was installed.
+
+## Technical Details
+
+### Function Architecture
+The script uses a modular approach with specialized functions:
+
+**Core Functions**:
+- `get_joomla_package_url()` - Auto-detects server type and routes to appropriate parser
+- `get_package_from_xml()` - Handles XML servers (Joomla 4.x/5.x)
+- `get_package_from_json()` - Handles JSON/TUF servers (Joomla 6.x+) with filtering
+- `get_extension_package_url()` - Handles extension updates with compatibility checking
+
+**Utility Functions**:
+- `get_joomla_version()` - Extracts semantic version from filename
+- `get_joomla_major_version()` - Extracts major version for language server selection
+- `get_random_prefix()` - Generates secure database table prefix
+- `print_title()` - Formatted section titles
+- `print_result()` - Joomla-style colored result boxes
+
+All functions include PHPDoc-style comments with parameter and return type documentation.
 
 ## TO DO
 - [ ] Support for additional extensions
