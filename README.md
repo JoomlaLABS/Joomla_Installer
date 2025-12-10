@@ -6,6 +6,7 @@ Bash script to automatically install Joomla! with advanced features for version 
 - ✅ Auto-detection of Joomla version (4.x, 5.x, 6.x)
 - ✅ Automatic language pack installation with version compatibility
 - ✅ Joomla! Patch Tester extension with automatic compatibility check
+- ✅ Automatic creation of additional users with custom usergroups
 - ✅ Smart cleanup of existing installation (preserves specified files/directories/tables)
 - ✅ Database management with selective table preservation
 - ✅ Colored output with clear success/warning/error messages
@@ -24,6 +25,7 @@ Bash script to automatically install Joomla! with advanced features for version 
    - Installation path
    - Database credentials
    - Admin user details
+   - Additional users (optional)
    - Files/directories/tables to preserve during cleanup
    
 2. **Upload files** to your server:
@@ -106,7 +108,8 @@ Bash script to automatically install Joomla! with advanced features for version 
 5. **Installation**: Runs Joomla CLI installer with configured parameters
 6. **Language** (optional): Installs and sets default language
 7. **Patch Tester** (optional): Installs compatible Patch Tester extension
-8. **Final Report**: Shows success or warnings summary
+8. **Additional Users** (optional): Creates configured users with custom usergroups
+9. **Final Report**: Shows success or warnings summary
 
 ### Version Detection
 - Extracts version from filename (e.g., `Joomla_4.4.14-Stable` → `4.4.14`)
@@ -143,7 +146,45 @@ DB_PASS="db_password"
 DB_NAME="db_name"
 DB_ENCRYPTION=0               # 0=None, 1=One way, 2=Two way
 PUBLIC_FOLDER=""              # For Joomla 5.x+
+
+# Additional Users (optional)
+# Format: "username|name|email|password|usergroup1,usergroup2"
+ADDITIONAL_USERS=(
+    "editor|Editor User|editor@example.com|password123|Editor"
+    "manager|Manager User|manager@example.com|password123|Manager"
+    "multi|Multi Group User|multi@example.com|password123|Manager,Editor"
+)
 ```
+
+### User Configuration
+
+The `ADDITIONAL_USERS` array allows you to automatically create users during installation. Each entry follows this format:
+```bash
+"username|full name|email|password|usergroup1,usergroup2,..."
+```
+
+**Available Usergroups**:
+- `Super Users` - Full administrative access
+- `Administrator` - Administrative access without super user privileges
+- `Manager` - Content and media management
+- `Editor` - Content editing capabilities
+- `Author` - Content creation
+- `Registered` - Basic registered user
+- `Guest` - Public access (default)
+
+**Examples**:
+```bash
+# Single usergroup
+"john|John Doe|john@example.com|SecurePass123|Manager"
+
+# Multiple usergroups (comma-separated, no spaces)
+"jane|Jane Smith|jane@example.com|SecurePass456|Manager,Editor"
+
+# Comment out users to skip creation
+# "test|Test User|test@example.com|test123|Registered"
+```
+
+**Note**: If `ADDITIONAL_USERS` is not defined or commented out in `jconfig.sh`, the script will skip user creation without errors.
 
 ## Output Messages
 
@@ -156,6 +197,7 @@ PUBLIC_FOLDER=""              # For Joomla 5.x+
   - Failed to install language pack
   - Failed to install Patch Tester
   - Failed to change default language
+  - Failed to add additional user
 
 ### Error Messages (Red)
 - `[ERROR]` - Critical error (installation stops)
@@ -200,6 +242,13 @@ ln -s /path/to/php /usr/local/bin/php
 - Check manifest URL is accessible
 - Verify internet connection
 
+### User creation fails
+- Check username format (alphanumeric, no spaces)
+- Verify email format is valid
+- Ensure usergroup names are correct (case-sensitive)
+- Password must meet Joomla's requirements
+- Username may already exist in database
+
 ## Advanced Features
 
 ### Selective Cleanup
@@ -211,13 +260,21 @@ Configure in `jconfig.sh`:
 ### Random Table Prefix
 Each installation generates a random 5-character prefix starting with a letter (e.g., `a3x9z_`) for enhanced security.
 
+### Additional Users Creation
+Automatically creates users after installation with:
+- Custom usernames and full names
+- Email addresses
+- Passwords
+- Multiple usergroups support (comma-separated)
+- Skips empty or commented lines in configuration
+
 ### Exit Codes
 - `0`: Success
 - `1`: Error (with detailed message)
 
 ## TO DO
-- [ ] Post installation steps: Add users
 - [ ] Support for additional extensions
+- [ ] Bulk extension installation from configuration
 
 ## Demo
 https://github.com/JoomlaLABS/Joomla_Installer/assets/906604/0343d9b6-c12b-49dd-986f-fb0446a63611

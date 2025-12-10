@@ -22,3 +22,12 @@ DB_SSLVERIFYSERVERCERT="" #  Verify SSL certificate for database connection. Val
 DB_SSLCA="" #  Path to CA file to verify encryption against
 DB_SSLCIPHER="" #  Supported Cipher Suite (optional)
 PUBLIC_FOLDER="" #  Relative or absolute path to the public folder [default: ""]
+
+# Additional users to create after installation (optional)
+# Format: "username|name|email|password|usergroup1,usergroup2"
+# usergroup: Super Users, Administrator, Manager, etc.
+# Leave empty or comment out to skip user creation
+ADDITIONAL_USERS=(
+#     "test|User Test|test@test.com|**********|Super Users"
+    "johndoe|John Doe|john.doe@example.com|**********|Manager,Editor"
+)

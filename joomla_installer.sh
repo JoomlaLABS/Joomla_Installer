@@ -217,6 +217,11 @@ DB_PREFIX="$(get_random_prefix 5)" # Prefix for the database tables [default: "g
 
 # Remove all files and folders including 'hidden' files like .htaccess or folder like '.well-known'
 print_title "Cleanup installation path"
+# Check if installation directory exists
+if [ ! -d "$INSTALL_PATH" ]; then
+    print_result "[ERROR] Installation path does not exist: $INSTALL_PATH" "error"
+    exit 1
+fi
 echo "Direcories to keep: ${DIR_TO_KEEP[*]}"
 echo "Files to keep: ${FILE_TO_KEEP[*]}"
 for d in $(find $INSTALL_PATH -mindepth 1 -maxdepth 1 -type d); do
@@ -422,12 +427,42 @@ if [[ "$install_patchtester" == true ]]; then
 fi
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# Add additional users if configured
+
+if [ -v ADDITIONAL_USERS ] && [ ${#ADDITIONAL_USERS[@]} -gt 0 ]; then
+    print_title "Add Additional Users"
+    
+    for user_data in "${ADDITIONAL_USERS[@]}"; do
+        # Skip empty lines or comments
+        [[ -z "$user_data" || "$user_data" =~ ^#.* ]] && continue
+        
+        # Parse user data (format: username|name|email|password|usergroup)
+        IFS='|' read -r username name email password usergroup <<< "$user_data"
+        
+        echo "Adding user: $username ($name)"
+        
+        if ! "$PHP_CMD" "$INSTALL_PATH/cli/joomla.php" user:add \
+            --username="$username" \
+            --name="$name" \
+            --password="$password" \
+            --email="$email" \
+            --usergroup="$usergroup"; then
+            has_warnings=true
+            print_result "[WARNING] Failed to add user: $username" "warning"
+        else
+            print_result "[OK] User added: $username" "success"
+        fi
+    done
+fi
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Final installation result
 print_title "Installation Result"
 
 if [ "$has_warnings" = true ]; then
     print_result "[WARNING] Joomla installation completed with warnings. Please review the output above for details." "warning"
 else
+    "$PHP_CMD" "$INSTALL_PATH/cli/joomla.php" config:get
     print_result "[SUCCESS] Joomla installation completed successfully!" "success"
 fi
 
