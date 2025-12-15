@@ -1,27 +1,68 @@
 # Joomla_Installer
-Bash script to automatically install Joomla! with advanced features for version management, language installation, and extension compatibility.
 
-## Features
-- ✅ Automatic Joomla! installation from direct URL or update server
-- ✅ Auto-detection of Joomla version (4.x, 5.x, 6.x)
-- ✅ **Support for Joomla 6.x JSON/TUF update servers** with channel and stability filtering
-- ✅ Automatic language pack installation with version compatibility
-- ✅ Joomla! Patch Tester extension with automatic compatibility check
-- ✅ Automatic creation of additional users with custom usergroups
-- ✅ Smart cleanup of existing installation (preserves specified files/directories/tables)
-- ✅ Database management with selective table preservation
-- ✅ Colored output with clear success/warning/error messages
-- ✅ Input validation (URL format, language code)
-- ✅ Error handling with detailed feedback
+![Joomla Installer Banner](https://via.placeholder.com/1200x300/1c3d5a/ffffff?text=Joomla!+Automated+Installer)
 
-## Requirements
-- **PHP** (command-line): Available in PATH or at `/usr/local/bin/php`
+![GitHub all releases](https://img.shields.io/github/downloads/JoomlaLABS/Joomla_Installer/total?style=for-the-badge&color=blue)
+![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/JoomlaLABS/Joomla_Installer/latest/total?style=for-the-badge&color=blue)
+![GitHub release (latest by SemVer)](https://img.shields.io/github/v/release/JoomlaLABS/Joomla_Installer?sort=semver&style=for-the-badge&color=blue)
+
+[![License](https://img.shields.io/badge/license-GPL%202.0%2B-blue.svg)](LICENSE)
+[![Bash](https://img.shields.io/badge/Bash-4.0+-green?logo=gnu-bash)](https://www.gnu.org/software/bash/)
+
+## Description
+
+Joomla_Installer is a powerful Bash script that revolutionizes the Joomla! deployment process by completely automating installation from the command line. Built for developers, site administrators, and DevOps professionals who need rapid, repeatable Joomla installations without manual intervention.
+
+Perfect for creating development environments, staging servers, automated testing pipelines, and production deployments with complete control over database configuration, language selection, extension installation, and user management.
+
+## ✨ Key Features
+
+### 🚀 Automated Installation
+- **One-Command Deployment**: Complete Joomla installation with a single command
+- **Zero Manual Steps**: No GUI interaction required
+- **Repeatable Process**: Perfect for CI/CD pipelines and automated testing
+- **Smart Version Detection**: Automatically adapts to Joomla 4.x, 5.x, and 6.x features
+
+### 🌍 Multi-Version Support
+- **Joomla 4.x/5.x**: XML update server support with automatic latest version selection
+- **Joomla 6.x**: JSON/TUF update server support with advanced filtering
+- **Channel Filtering**: Select specific Joomla series (5.x, 6.x)
+- **Stability Filtering**: Choose between stable, RC, and alpha releases
+- **Version Auto-Detection**: Adapts installation parameters based on detected version
+
+### 🔧 Advanced Configuration
+- **Language Installation**: Automatic language pack download and installation with version compatibility
+- **Extension Support**: Install Joomla! Patch Tester with automatic compatibility checking
+- **User Management**: Bulk user creation with custom usergroups from configuration file
+- **Database Control**: Selective table preservation during cleanup
+- **Smart Cleanup**: Preserves specified files and directories during re-installation
+
+### 🎯 Intelligent Package Resolution
+- **Multi-Pattern URL Testing**: Tests 4 different URL patterns for maximum compatibility
+- **Auto-Format Detection**: XML vs JSON server automatic detection
+- **Fallback Mechanisms**: Multiple download sources for reliability
+- **Compatibility Checking**: Extension targetplatform validation against Joomla version
+
+### 🎨 Developer Experience
+- **Colored Output**: Joomla-style colored result boxes (success, warning, error)
+- **Detailed Logging**: Clear progress indication for each installation step
+- **Input Validation**: URL format and language code validation
+- **Error Handling**: Comprehensive error checking with set -euo pipefail
+- **PHPDoc-Style Comments**: Well-documented helper functions
+
+## 📋 Requirements
+
+- **Bash**: 4.0 or higher
+- **PHP CLI**: Available in PATH or at `/usr/local/bin/php`
 - **wget**: For downloading packages
 - **unzip**: For extracting Joomla packages
 - **MySQL/MariaDB** or **PostgreSQL**: Database server
-- **Bash**: Shell environment
+- **Server Permissions**: Write access to installation directory
 
-## Configuration & Installation
+## 🚀 Installation
+
+### Quick Start
+
 1. **Populate `jconfig.sh`** with your configuration:
    - Installation path
    - Database credentials
@@ -46,14 +87,16 @@ Bash script to automatically install Joomla! with advanced features for version 
    sed -i 's/\r$//' joomla_installer.sh jconfig.sh
    ```
 
-## Usage
+## 💻 Usage
 
 ### Basic Syntax
+
 ```bash
 ./joomla_installer.sh [-u <URL_ZIP>|-url <URL_ZIP>] [-s <URL_XML|URL_JSON>|-server <URL_XML|URL_JSON>] [-c <CHANNEL>|-channel <CHANNEL>] [-t <STABILITY>|-stability <STABILITY>] [-l <LANGUAGE>|-language <LANGUAGE>] [--patchtester]
 ```
 
 ### Parameters
+
 - **`-u, -url <URL_ZIP>`**: Direct URL of the Joomla! ZIP package
   - Example: `https://github.com/joomla/joomla-cms/releases/download/5.1.0-alpha4/Joomla_5.1.0-alpha4-Alpha-Full_Package.zip`
   - Example: `https://developer.joomla.org/nightlies/Joomla_5.1.0-beta1-dev-Development-Full_Package.zip`
@@ -93,90 +136,65 @@ Bash script to automatically install Joomla! with advanced features for version 
 
 ### Examples
 
-#### Install Joomla 5 from direct URL with Italian language and Patch Tester
+#### Install Joomla 5 from direct URL with Italian language
 ```bash
-./joomla_installer.sh -url "https://github.com/joomla/joomla-cms/releases/download/5.1.0-alpha4/Joomla_5.1.0-alpha4-Alpha-Full_Package.zip" -language "it-IT" --patchtester
+./joomla_installer.sh \
+  -url "https://github.com/joomla/joomla-cms/releases/download/5.1.0-alpha4/Joomla_5.1.0-alpha4-Alpha-Full_Package.zip" \
+  -language "it-IT" \
+  --patchtester
 ```
 
-#### Install latest Joomla 5.x stable with Italian language
+#### Install latest Joomla 5.x stable
 ```bash
-./joomla_installer.sh -server "https://update.joomla.org/core/j5/default.xml" -language "it-IT"
+./joomla_installer.sh \
+  -server "https://update.joomla.org/core/j5/default.xml" \
+  -language "it-IT"
 ```
 
-#### Install latest Joomla 4.x stable with Patch Tester
+#### Install Joomla 6.x stable from JSON server
 ```bash
-./joomla_installer.sh -server "https://update.joomla.org/core/j4/default.xml" --patchtester
+./joomla_installer.sh \
+  -server "https://update.joomla.org/cms/targets.json" \
+  -channel "6.x" \
+  -stability "stable"
 ```
 
-#### Install latest Joomla 6.x stable from JSON server
+#### Install Joomla 6.x alpha (latest development)
 ```bash
-./joomla_installer.sh -server "https://update.joomla.org/cms/targets.json" -channel "6.x" -stability "stable"
+./joomla_installer.sh \
+  -server "https://update.joomla.org/cms/targets.json" \
+  -channel "6.x" \
+  -stability "alpha"
 ```
 
-#### Install Joomla 6.x alpha (latest development version)
+#### Install latest Joomla 4.x with Patch Tester
 ```bash
-./joomla_installer.sh -server "https://update.joomla.org/cms/targets.json" -channel "6.x" -stability "alpha"
+./joomla_installer.sh \
+  -server "https://update.joomla.org/core/j4/default.xml" \
+  --patchtester
 ```
 
 #### Install latest Joomla from JSON server (any channel, any stability)
 ```bash
-./joomla_installer.sh -server "https://update.joomla.org/cms/targets.json"
+./joomla_installer.sh \
+  -server "https://update.joomla.org/cms/targets.json"
 ```
 
 #### Install latest nightly build (English only)
 ```bash
-./joomla_installer.sh -server "https://update.joomla.org/core/nightlies/next_major_extension.xml"
+./joomla_installer.sh \
+  -server "https://update.joomla.org/core/nightlies/next_major_extension.xml"
 ```
 
-## How It Works
+## ⚙️ Configuration File (`jconfig.sh`)
 
-### Installation Process
-1. **Cleanup**: Removes all files and folders except those specified in `jconfig.sh`
-2. **Download**: Retrieves Joomla package from URL or update server
-3. **Extract**: Unzips the package to the installation path
-4. **Database Cleanup**: Drops all tables except those specified in `jconfig.sh`
-5. **Installation**: Runs Joomla CLI installer with configured parameters
-6. **Language** (optional): Installs and sets default language
-7. **Patch Tester** (optional): Installs compatible Patch Tester extension
-8. **Additional Users** (optional): Creates configured users with custom usergroups
-9. **Final Report**: Shows success or warnings summary
+### Basic Configuration
 
-### Update Server Detection
-The script automatically detects the update server type and uses the appropriate parser:
-
-**XML Servers (Joomla 4.x/5.x)**:
-- Traditional XML manifest format
-- Selects the latest available version
-- Channel and stability parameters are ignored (not applicable)
-
-**JSON/TUF Servers (Joomla 6.x+)**:
-- Modern JSON format with TUF (The Update Framework) security
-- Supports filtering by:
-  - **Channel**: `5.x`, `6.x`, etc.
-  - **Stability**: `stable`, `rc`, `alpha`
-- Tests multiple URL patterns for package availability:
-  1. Direct Full_Package URL
-  2. update.joomla.org format conversion
-  3. GitHub releases pattern
-  4. Alternative dash format
-- Intelligent sorting: channel → stability → version
-
-### Version Detection
-- Extracts version from filename (e.g., `Joomla_4.4.14-Stable` → `4.4.14`)
-- Automatically determines major version for language server selection
-- For Joomla < 5.0.0: Skips `--public-folder` parameter (not supported)
-- For Joomla ≥ 5.0.0: Adds `--public-folder` parameter
-
-### Extension Compatibility
-The script intelligently checks extension compatibility using `targetplatform` information from manifest XML files. For example, Patch Tester with pattern `[45].[01234]` is compatible with:
-- Joomla 4.0, 4.1, 4.2, 4.3, 4.4
-- Joomla 5.0, 5.1, 5.2, 5.3, 5.4
-
-## Configuration File (`jconfig.sh`)
-
-### Example Configuration
 ```bash
+# Installation Path
 INSTALL_PATH="/home/user/public_html"
+
+# Items to preserve during cleanup
 DIR_TO_KEEP=(".well-known" "cgi-bin")
 FILE_TO_KEEP=(".htaccess" "robots.txt")
 TABLE_TO_KEEP=("backup_table1" "backup_table2")
@@ -196,21 +214,18 @@ DB_PASS="db_password"
 DB_NAME="db_name"
 DB_ENCRYPTION=0               # 0=None, 1=One way, 2=Two way
 PUBLIC_FOLDER=""              # For Joomla 5.x+
+```
 
+### User Management Configuration
+
+```bash
 # Additional Users (optional)
-# Format: "username|name|email|password|usergroup1,usergroup2"
+# Format: "username|full name|email|password|usergroup1,usergroup2"
 ADDITIONAL_USERS=(
     "editor|Editor User|editor@example.com|password123|Editor"
     "manager|Manager User|manager@example.com|password123|Manager"
     "multi|Multi Group User|multi@example.com|password123|Manager,Editor"
 )
-```
-
-### User Configuration
-
-The `ADDITIONAL_USERS` array allows you to automatically create users during installation. Each entry follows this format:
-```bash
-"username|full name|email|password|usergroup1,usergroup2,..."
 ```
 
 **Available Usergroups**:
@@ -236,7 +251,54 @@ The `ADDITIONAL_USERS` array allows you to automatically create users during ins
 
 **Note**: If `ADDITIONAL_USERS` is not defined or commented out in `jconfig.sh`, the script will skip user creation without errors.
 
-## Output Messages
+## 🔄 How It Works
+
+### Installation Process
+
+1. **Cleanup**: Removes all files and folders except those specified in `jconfig.sh`
+2. **Download**: Retrieves Joomla package from URL or update server
+3. **Extract**: Unzips the package to the installation path
+4. **Database Cleanup**: Drops all tables except those specified in `jconfig.sh`
+5. **Installation**: Runs Joomla CLI installer with configured parameters
+6. **Language** (optional): Installs and sets default language
+7. **Patch Tester** (optional): Installs compatible Patch Tester extension
+8. **Additional Users** (optional): Creates configured users with custom usergroups
+9. **Final Report**: Shows success or warnings summary
+
+### Server Type Detection
+
+The script automatically detects the update server type:
+
+**XML Servers (Joomla 4.x/5.x)**:
+- Traditional XML manifest format
+- Selects the latest available version
+- Channel and stability parameters are ignored
+
+**JSON/TUF Servers (Joomla 6.x+)**:
+- Modern JSON format with TUF (The Update Framework) security
+- Supports filtering by channel (`5.x`, `6.x`) and stability (`stable`, `rc`, `alpha`)
+- Tests 4 URL patterns for package availability
+- Intelligent sorting: channel → stability → version
+
+### URL Pattern Testing (JSON only)
+
+1. **Full_Package variant**: Converts `Update_Package.zip` to `Full_Package.zip`
+2. **update.joomla.org format**: Extracts version from downloads.joomla.org URLs
+3. **GitHub releases**: Converts GitHub Update packages to Full packages
+4. **Alternative formats**: Tests dash-separated version formats
+
+### Version Detection
+- Extracts version from filename (e.g., `Joomla_4.4.14-Stable` → `4.4.14`)
+- Automatically determines major version for language server selection
+- For Joomla < 5.0.0: Skips `--public-folder` parameter (not supported)
+- For Joomla ≥ 5.0.0: Adds `--public-folder` parameter
+
+### Extension Compatibility
+The script intelligently checks extension compatibility using `targetplatform` information from manifest XML files. For example, Patch Tester with pattern `[45].[01234]` is compatible with:
+- Joomla 4.0, 4.1, 4.2, 4.3, 4.4
+- Joomla 5.0, 5.1, 5.2, 5.3, 5.4
+
+## 📊 Output Messages
 
 ### Success Messages (Green)
 - `[OK]` - Operation completed successfully
@@ -258,14 +320,14 @@ The `ADDITIONAL_USERS` array allows you to automatically create users during ins
   - Joomla installation failed
   - Unable to detect version from filename
 
-## Troubleshooting
+## 🛠️ Troubleshooting
 
-### "Permission denied" error
+### Permission denied error
 ```bash
 chmod +x joomla_installer.sh
 ```
 
-### "bad interpreter: No such file or directory"
+### Bad interpreter error
 Line endings issue (CRLF instead of LF):
 ```bash
 dos2unix joomla_installer.sh
@@ -273,8 +335,7 @@ dos2unix joomla_installer.sh
 sed -i 's/\r$//' joomla_installer.sh
 ```
 
-### "PHP is not installed or not in PATH"
-Install PHP CLI or create symlink:
+### PHP is not installed or not in PATH
 ```bash
 # Check if PHP exists
 which php
@@ -305,7 +366,34 @@ ln -s /path/to/php /usr/local/bin/php
 - Password must meet Joomla's requirements
 - Username may already exist in database
 
-## Advanced Features
+## 🏗️ Technical Details
+
+### Function Architecture
+
+**Core Functions**:
+- `get_joomla_package_url()` - Auto-detects server type and routes to appropriate parser
+- `get_package_from_xml()` - Handles XML servers (Joomla 4.x/5.x)
+- `get_package_from_json()` - Handles JSON/TUF servers (Joomla 6.x+) with filtering
+- `get_extension_package_url()` - Handles extension updates with compatibility checking
+
+**Utility Functions**:
+- `get_joomla_version()` - Extracts semantic version from filename
+- `get_joomla_major_version()` - Extracts major version for language server selection
+- `get_random_prefix()` - Generates secure database table prefix
+- `print_title()` - Formatted section titles
+- `print_result()` - Joomla-style colored result boxes
+
+All functions include PHPDoc-style comments with parameter and return type documentation.
+
+### Security Features
+
+- **Selective Cleanup**: Preserves specified directories, files, and database tables
+- **Random Table Prefix**: 5-character prefix starting with a letter (e.g., `a3x9z_`)
+- **Input Validation**: URL format and language code validation
+- **Error Handling**: Comprehensive error checking with `set -euo pipefail`
+- **Exit Codes**: `0` for success, `1` for errors
+
+## 🔥 Advanced Features
 
 ### Selective Cleanup
 Configure in `jconfig.sh`:
@@ -328,9 +416,6 @@ For JSON servers, the script tests multiple URL patterns to find working downloa
 
 This ensures maximum compatibility even when URLs change or redirect.
 
-### Random Table Prefix
-Each installation generates a random 5-character prefix starting with a letter (e.g., `a3x9z_`) for enhanced security.
-
 ### Additional Users Creation
 Automatically creates users after installation with:
 - Custom usernames and full names
@@ -339,42 +424,112 @@ Automatically creates users after installation with:
 - Multiple usergroups support (comma-separated)
 - Skips empty or commented lines in configuration
 
-### Exit Codes
-- `0`: Success
-- `1`: Error (with detailed message)
-
 ### Final Result Display
 The installation result shows the actual Joomla package name (e.g., "Joomla_5.4.1-Stable" or "Joomla_6.0.0-alpha1") instead of generic "Joomla", providing clear confirmation of which version was installed.
 
-## Technical Details
-
-### Function Architecture
-The script uses a modular approach with specialized functions:
-
-**Core Functions**:
-- `get_joomla_package_url()` - Auto-detects server type and routes to appropriate parser
-- `get_package_from_xml()` - Handles XML servers (Joomla 4.x/5.x)
-- `get_package_from_json()` - Handles JSON/TUF servers (Joomla 6.x+) with filtering
-- `get_extension_package_url()` - Handles extension updates with compatibility checking
-
-**Utility Functions**:
-- `get_joomla_version()` - Extracts semantic version from filename
-- `get_joomla_major_version()` - Extracts major version for language server selection
-- `get_random_prefix()` - Generates secure database table prefix
-- `print_title()` - Formatted section titles
-- `print_result()` - Joomla-style colored result boxes
-
 All functions include PHPDoc-style comments with parameter and return type documentation.
 
-## TO DO
+### Security Features
+
+- **Selective Cleanup**: Preserves specified directories, files, and database tables
+- **Random Table Prefix**: 5-character prefix starting with a letter (e.g., `a3x9z_`)
+- **Input Validation**: URL format and language code validation
+- **Error Handling**: Comprehensive error checking with `set -euo pipefail`
+- **Exit Codes**: `0` for success, `1` for errors
+
+## 📝 TO DO
 - [ ] Support for additional extensions
 - [ ] Bulk extension installation from configuration
 
-## Demo
+## 🎬 Demo
 https://github.com/JoomlaLABS/Joomla_Installer/assets/906604/0343d9b6-c12b-49dd-986f-fb0446a63611
 
-## License
-This project is licensed under the GNU General Public License v2.0 - see the [LICENSE](LICENSE) file for details.
+## 🤝 Contributing
 
-## Credits
-Developed by JoomlaLABS
+We welcome contributions! Here's how you can help:
+
+### 🔄 How to Contribute
+
+1. **🍴 Fork** the repository
+2. **🌿 Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **✨ Make** your changes following our coding standards
+4. **🧪 Add** tests if applicable
+5. **💾 Commit** your changes (`git commit -m 'Add some amazing feature'`)
+6. **🚀 Push** to the branch (`git push origin feature/amazing-feature`)
+7. **📮 Submit** a pull request
+
+### 📋 Guidelines
+
+- Follow Bash best practices and ShellCheck recommendations
+- Write clear, concise commit messages
+- Test your changes on multiple Joomla versions (4.x, 5.x, 6.x)
+- Update documentation as needed
+- Add PHPDoc-style comments for new functions
+- Maintain backward compatibility where possible
+
+## 📄 License
+
+This project is licensed under the **GNU General Public License v2.0** - see the [LICENSE](LICENSE) file for details.
+
+```
+GNU GENERAL PUBLIC LICENSE
+Version 2, June 1991
+
+Copyright (C) 2023-2025 Joomla!LABS
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+```
+
+## 👥 Project Information
+
+### 🏢 Project Owner
+
+**Joomla!LABS** - [https://joomlalabs.com](https://joomlalabs.com)
+
+[![Email](https://img.shields.io/badge/Email-info%40joomlalabs.com-red?style=for-the-badge&logo=gmail&logoColor=white)](mailto:info@joomlalabs.com)
+
+*Joomla!LABS is the company that owns and maintains this project.*
+
+### 👨‍💻 Contributors
+
+**Luca Racchetti** - Lead Developer
+
+[![Email](https://img.shields.io/badge/Email-Razzo1987%40gmail.com-red?style=for-the-badge&logo=gmail&logoColor=white)](mailto:Razzo1987@gmail.com)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Luca%20Racchetti-blue?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/razzo/)
+[![GitHub](https://img.shields.io/badge/GitHub-Razzo1987-black?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Razzo1987)
+
+*Full-Stack Developer passionate about creating modern, efficient web applications and tools for the Joomla! community*
+
+## 🆘 Support
+
+### 💬 Get Help
+
+Need help? We're here for you!
+
+- 🐛 Found a bug? [Open an issue](https://github.com/JoomlaLABS/Joomla_Installer/issues/new?labels=bug&template=bug_report.md)
+- 💡 Have a feature request? [Open an issue](https://github.com/JoomlaLABS/Joomla_Installer/issues/new?labels=enhancement&template=feature_request.md)
+- ❓ Questions? [Start a discussion](https://github.com/JoomlaLABS/Joomla_Installer/discussions)
+- 📧 Direct contact: [Razzo1987@gmail.com](mailto:Razzo1987@gmail.com)
+
+## 💝 Donate
+
+If you find this project useful, consider supporting its development:
+
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?style=for-the-badge&logo=github)](https://github.com/sponsors/JoomlaLABS)
+[![Buy me a beer](https://img.shields.io/badge/🍺%20Buy%20me%20a-beer-FFDD00?style=for-the-badge&labelColor=FFDD00&color=FFDD00)](https://buymeacoffee.com/razzo)
+
+Your support helps maintain and improve this project!
+
+---
+
+**Made with ❤️ for the Joomla! Community**
+
+**⭐ If this project helped you, please consider giving it a star! ⭐**
